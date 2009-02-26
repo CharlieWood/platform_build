@@ -581,7 +581,11 @@ define build-userimage-ext-target
 	  $(MKEXT2USERIMG) $(1) $(2) $(4) $(3) $(5)
 endef
 else
+ifeq ($(INTERNAL_USERIMAGES_USE_UBIFS),true)
+INTERNAL_MKUSERFS := $(MKUBIFS)
+else
 INTERNAL_USERIMAGES_DEPS := $(MKYAFFS2)
+endif
 endif
 
 # -----------------------------------------------------------------
@@ -716,6 +720,15 @@ endef
 
 else # INTERNAL_USERIMAGES_USE_EXT != true
 
+ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+define build-systemimage-target
+    @echo "Target system fs image: $(1)"
+    @mkdir -p $(dir $(1))
+    $(hide) $(MKUBIFS) -d $(TARGET_OUT) -o $(1) $(TARGET_MKUBIFS_ARGS)
+endef
+
+else
+
 ## generate a yaffs2 image
 # $(1): output file
 define build-systemimage-target
@@ -723,6 +736,7 @@ define build-systemimage-target
     @mkdir -p $(dir $(1))
     $(hide) $(MKYAFFS2) -f $(mkyaffs2_extra_flags) $(TARGET_OUT) $(1)
 endef
+endif # INTERNAL_USERIMAGES_USE_UBIFS
 endif # INTERNAL_USERIMAGES_USE_EXT
 
 $(BUILT_SYSTEMIMAGE): $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS)
@@ -803,6 +817,15 @@ endef
 
 else # INTERNAL_USERIMAGES_USE_EXT != true
 
+ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+define build-userdataimage-target
+    $(call pretty,"Target userdata fs image: $(INSTALLED_USERDATAIMAGE_TARGET)")
+    $(hide) $(MKUBIFS) -d $(TARGET_OUT_DATA) -o $(INSTALLED_USERDATAIMAGE_TARGET) $(TARGET_MKUBIFS_ARGS)
+    $(hide) $(call assert-max-file-size,$(INSTALLED_USERDATAIMAGE_TARGET),$(BOARD_USERDATAIMAGE_MAX_SIZE))
+endef
+
+else
+
 ## Generate a yaffs2 image
 define build-userdataimage-target
     $(call pretty,"Target userdata fs image: $(INSTALLED_USERDATAIMAGE_TARGET)")
@@ -810,6 +833,7 @@ define build-userdataimage-target
     $(hide) $(MKYAFFS2) -f $(mkyaffs2_extra_flags) $(TARGET_OUT_DATA) $(INSTALLED_USERDATAIMAGE_TARGET)
     $(hide) $(call assert-max-image-size,$(INSTALLED_USERDATAIMAGE_TARGET),$(BOARD_USERDATAIMAGE_PARTITION_SIZE),yaffs)
 endef
+endif # INTERNAL_USERIMAGES_USE_UBIFS
 endif # INTERNAL_USERIMAGES_USE_EXT
 
 BUILT_USERDATAIMAGE_TARGET := $(PRODUCT_OUT)/userdata.img
@@ -844,6 +868,15 @@ $(INSTALLED_USERDATATARBALL_TARGET): $(FS_GET_STATS) $(INTERNAL_USERDATAIMAGE_FI
 userdatatarball-nodeps: $(FS_GET_STATS)
 	$(build-userdatatarball-target)
 
+.PHONY: ubifs_raw
+ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+UBI_RAW_IMAGE := $(PRODUCT_OUT)/system_data_ubi.img
+ubifs_raw: $(INSTALLED_USERDATAIMAGE_TARGET) $(INSTALLED_SYSTEMIMAGE)
+	$(call pretty,"Generating UBI raw image:" "$(UBI_RAW_IMAGE)")
+	$(hide) $(MKUBIRAW) -o $(UBI_RAW_IMAGE) $(TARGET_UBIRAW_ARGS)
+else
+ubifs_raw:
+endif
 
 # -----------------------------------------------------------------
 # bring in the installer image generation defines if necessary

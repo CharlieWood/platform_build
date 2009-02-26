@@ -698,7 +698,8 @@ droidcore: files \
 	$(INSTALLED_BOOTIMAGE_TARGET) \
 	$(INSTALLED_RECOVERYIMAGE_TARGET) \
 	$(INSTALLED_USERDATAIMAGE_TARGET) \
-	$(INSTALLED_FILES_FILE)
+	$(INSTALLED_FILES_FILE) \
+	ubifs_raw
 
 ifeq ($(EMMA_INSTRUMENT),true)
   $(call dist-for-goals, droid, $(EMMA_META_ZIP))
