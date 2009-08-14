@@ -696,7 +696,7 @@ endif
 droidcore: files \
 	systemimage \
 	$(INSTALLED_BOOTIMAGE_TARGET) \
-	$(INSTALLED_RECOVERYIMAGE_TARGET) \
+	recoveryimage \
 	$(INSTALLED_USERDATAIMAGE_TARGET) \
 	$(INSTALLED_FILES_FILE) \
 	ubifs_raw

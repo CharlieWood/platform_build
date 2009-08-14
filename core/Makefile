@@ -597,9 +597,9 @@ ifeq (,$(filter true, $(TARGET_NO_KERNEL) $(TARGET_NO_RECOVERY) $(BUILD_TINY_AND
 INSTALLED_RECOVERYIMAGE_TARGET := $(PRODUCT_OUT)/recovery.img
 
 recovery_initrc := $(call include-path-for, recovery)/etc/init.rc
-recovery_kernel := $(INSTALLED_KERNEL_TARGET) # same as a non-recovery system
-recovery_ramdisk := $(PRODUCT_OUT)/ramdisk-recovery.img
-recovery_build_prop := $(INSTALLED_BUILD_PROP_TARGET)
+#recovery_kernel := $(INSTALLED_KERNEL_TARGET) # same as a non-recovery system
+#recovery_ramdisk := $(PRODUCT_OUT)/ramdisk-recovery.img
+#recovery_build_prop := $(INSTALLED_BUILD_PROP_TARGET)
 recovery_binary := $(call intermediates-dir-for,EXECUTABLES,recovery)/recovery
 recovery_resources_common := $(call include-path-for, recovery)/res
 recovery_resources_private := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery/res))
@@ -615,22 +615,22 @@ ifeq ($(recovery_fstab),)
   $(info No recovery.fstab for TARGET_DEVICE $(TARGET_DEVICE))
 endif
 
-INTERNAL_RECOVERYIMAGE_ARGS := \
-	$(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
-	--kernel $(recovery_kernel) \
-	--ramdisk $(recovery_ramdisk)
+#INTERNAL_RECOVERYIMAGE_ARGS := \
+#	$(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
+#	--kernel $(recovery_kernel) \
+#	--ramdisk $(recovery_ramdisk)
 
 # Assumes this has already been stripped
-ifdef BOARD_KERNEL_CMDLINE
-  INTERNAL_RECOVERYIMAGE_ARGS += --cmdline "$(BOARD_KERNEL_CMDLINE)"
-endif
-ifdef BOARD_KERNEL_BASE
-  INTERNAL_RECOVERYIMAGE_ARGS += --base $(BOARD_KERNEL_BASE)
-endif
-BOARD_KERNEL_PAGESIZE := $(strip $(BOARD_KERNEL_PAGESIZE))
-ifdef BOARD_KERNEL_PAGESIZE
-  INTERNAL_RECOVERYIMAGE_ARGS += --pagesize $(BOARD_KERNEL_PAGESIZE)
-endif
+#ifdef BOARD_KERNEL_CMDLINE
+#  INTERNAL_RECOVERYIMAGE_ARGS += --cmdline "$(BOARD_KERNEL_CMDLINE)"
+#endif
+#ifdef BOARD_KERNEL_BASE
+#  INTERNAL_RECOVERYIMAGE_ARGS += --base $(BOARD_KERNEL_BASE)
+#endif
+#BOARD_KERNEL_PAGESIZE := $(strip $(BOARD_KERNEL_PAGESIZE))
+#ifdef BOARD_KERNEL_PAGESIZE
+#  INTERNAL_RECOVERYIMAGE_ARGS += --pagesize $(BOARD_KERNEL_PAGESIZE)
+#endif
 
 # Keys authorized to sign OTA packages this build will accept.  The
 # build always uses test-keys for this; release packaging tools will
@@ -650,11 +650,8 @@ $(RECOVERY_INSTALL_OTA_KEYS): $(OTA_PUBLIC_KEYS) $(DUMPKEY_JAR)
 	java -jar $(DUMPKEY_JAR) $(PRIVATE_OTA_PUBLIC_KEYS) > $@
 
 $(INSTALLED_RECOVERYIMAGE_TARGET): $(MKBOOTFS) $(MKBOOTIMG) $(MINIGZIP) \
-		$(INSTALLED_RAMDISK_TARGET) \
-		$(INSTALLED_BOOTIMAGE_TARGET) \
 		$(recovery_binary) \
 		$(recovery_initrc) $(recovery_kernel) \
-		$(INSTALLED_2NDBOOTLOADER_TARGET) \
 		$(recovery_build_prop) $(recovery_resource_deps) \
 		$(recovery_fstab) \
 		$(RECOVERY_INSTALL_OTA_KEYS)
@@ -688,7 +685,25 @@ INSTALLED_RECOVERYIMAGE_TARGET :=
 endif
 
 .PHONY: recoveryimage
+ifeq ($(TARGET_USERIMAGES_USE_EXT2),true)
+BIN_HELPER := mke2fs linker sh
+LIB_HELPER := libc.so libext2_blkid.so libext2_com_err.so \
+	      libext2_e2p.so libext2fs.so libext2_profile.so \
+	      libext2_uuid.so libm.so libstdc++.so
+
+BIN_HELPER := $(addprefix $(TARGET_OUT)/bin/, $(BIN_HELPER))
+LIB_HELPER := $(addprefix $(TARGET_OUT)/lib/, $(LIB_HELPER))
+
 recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET)
+	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
+	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
+	cp -f $(BIN_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
+	cp -f $(LIB_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
+	mv $(TARGET_RECOVERY_ROOT_OUT)/system/bin/mke2fs $(TARGET_RECOVERY_ROOT_OUT)/system/bin/mkfs.ext3
+	$(call build-recoveryimage-target,$(INSTALLED_RECOVERYIMAGE_TARGET))
+else
+recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET)
+endif
 
 ifneq ($(BOARD_NAND_PAGE_SIZE),)
 mkyaffs2_extra_flags := -c $(BOARD_NAND_PAGE_SIZE)
@@ -716,6 +731,11 @@ ifeq ($(INTERNAL_USERIMAGES_USE_EXT),true)
 define build-systemimage-target
     @echo "Target system fs image: $(1)"
     $(call build-userimage-ext-target,$(TARGET_OUT),$(1),system,$(INTERNAL_USERIMAGES_EXT_VARIANT),$(BOARD_SYSTEMIMAGE_PARTITION_SIZE))
+endef
+
+define build-recoveryimage-target
+     @echo "Target recovery fs image: $(1)"
+     $(call build-userimage-ext2-target,$(TARGET_RECOVERY_ROOT_OUT),$(1),recovery,true)
 endef
 
 else # INTERNAL_USERIMAGES_USE_EXT != true
