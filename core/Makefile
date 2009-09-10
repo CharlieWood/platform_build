@@ -685,11 +685,22 @@ INSTALLED_RECOVERYIMAGE_TARGET :=
 endif
 
 .PHONY: recoveryimage
+ifneq ($(TARGET_NO_RECOVERY),true)
+
+BIN_HELPER := linker sh
+LIB_HELPER := libc.so libm.so libstdc++.so
+
 ifeq ($(TARGET_USERIMAGES_USE_EXT2),true)
-BIN_HELPER := mke2fs linker sh
-LIB_HELPER := libc.so libext2_blkid.so libext2_com_err.so \
+BIN_HELPER += mke2fs
+LIB_HELPER += libext2_blkid.so libext2_com_err.so \
 	      libext2_e2p.so libext2fs.so libext2_profile.so \
-	      libext2_uuid.so libm.so libstdc++.so
+	      libext2_uuid.so
+endif
+
+ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
+BIN_HELPER += ubiupdatevol ubiformat ubiattach ubidetach
+LIB_HELPER += libubi.so
+endif
 
 BIN_HELPER := $(addprefix $(TARGET_OUT)/bin/, $(BIN_HELPER))
 LIB_HELPER := $(addprefix $(TARGET_OUT)/lib/, $(LIB_HELPER))
@@ -699,10 +710,9 @@ recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET)
 	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
 	cp -f $(BIN_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
 	cp -f $(LIB_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
-	mv $(TARGET_RECOVERY_ROOT_OUT)/system/bin/mke2fs $(TARGET_RECOVERY_ROOT_OUT)/system/bin/mkfs.ext3
 	$(call build-recoveryimage-target,$(INSTALLED_RECOVERYIMAGE_TARGET))
 else
-recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET)
+recoveryimage:
 endif
 
 ifneq ($(BOARD_NAND_PAGE_SIZE),)
@@ -745,6 +755,11 @@ define build-systemimage-target
     @echo "Target system fs image: $(1)"
     @mkdir -p $(dir $(1))
     $(hide) $(MKUBIFS) -d $(TARGET_OUT) -o $(1) $(TARGET_MKUBIFS_ARGS)
+endef
+
+define build-recoveryimage-target
+    @echo "Target recovery fs image: $(1)"
+    $(hide) $(MKUBIFS) -d $(TARGET_RECOVERY_ROOT_OUT) -o $(1) $(TARGET_MKUBIFS_ARGS_RECOVERY)
 endef
 
 else
@@ -890,7 +905,7 @@ userdatatarball-nodeps: $(FS_GET_STATS)
 
 .PHONY: ubifs_raw
 ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
-UBI_RAW_IMAGE := $(PRODUCT_OUT)/system_data_ubi.img
+UBI_RAW_IMAGE := $(PRODUCT_OUT)/android_root.img
 ubifs_raw: $(INSTALLED_USERDATAIMAGE_TARGET) $(INSTALLED_SYSTEMIMAGE)
 	$(call pretty,"Generating UBI raw image:" "$(UBI_RAW_IMAGE)")
 	$(hide) $(MKUBIRAW) -o $(UBI_RAW_IMAGE) $(TARGET_UBIRAW_ARGS)

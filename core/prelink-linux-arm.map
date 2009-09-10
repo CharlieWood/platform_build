@@ -180,8 +180,10 @@ libhtc_ril.so           0xA2C00000 # [~1M]
 liblvmxipc.so           0xA2B00000 # [~1M] for vendor/nxp
 libreference-cdma-sms.so 0xA2A00000 # [<64K] for hardware/ril
 
+# ubi libraries
+libubi.so		      0xA2900000 # [???]
+
 # libraries for specific apps or temporary libraries
-<<<<<<< HEAD:core/prelink-linux-arm.map
 libcam_ipl.so           0x9F000000 # [???]
 libwbxml.so             0x9EF00000 # [???]
 libwbxml_jni.so         0x9EE00000 # [~1M]
