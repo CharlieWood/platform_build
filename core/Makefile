@@ -906,9 +906,11 @@ userdatatarball-nodeps: $(FS_GET_STATS)
 .PHONY: ubifs_raw
 ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
 UBI_RAW_IMAGE := $(PRODUCT_OUT)/android_root.img
+UBI_RAW_RECO_IMAGE := $(PRODUCT_OUT)/android_recovery.img
 ubifs_raw: $(INSTALLED_USERDATAIMAGE_TARGET) $(INSTALLED_SYSTEMIMAGE)
-	$(call pretty,"Generating UBI raw image:" "$(UBI_RAW_IMAGE)")
+	$(call pretty,"Generating UBI raw image:" "$(UBI_RAW_IMAGE)" "$(UBI_RAW_RECO_IMAGE)")
 	$(hide) $(MKUBIRAW) -o $(UBI_RAW_IMAGE) $(TARGET_UBIRAW_ARGS)
+	$(hide) $(MKUBIRAW) -o $(UBI_RAW_RECO_IMAGE) $(TARGET_UBIRAW_RECO_ARGS)
 else
 ubifs_raw:
 endif
