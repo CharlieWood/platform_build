@@ -701,7 +701,7 @@ endif
 BIN_HELPER := $(addprefix $(TARGET_OUT)/bin/, $(BIN_HELPER))
 LIB_HELPER := $(addprefix $(TARGET_OUT)/lib/, $(LIB_HELPER))
 
-recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET)
+recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET) $(BIN_HELPER) $(LIB_HELPER)
 	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
 	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
 	cp -f $(BIN_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
