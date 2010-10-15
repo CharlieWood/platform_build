@@ -55,7 +55,11 @@ $(combo_target)SHLIB_SUFFIX := .so
 $(combo_target)JNILIB_SUFFIX := $($(combo_target)SHLIB_SUFFIX)
 $(combo_target)STATIC_LIB_SUFFIX := .a
 
+ifeq ($(TARGET_KERNEL_2G),true)
+$(combo_target)PRELINKER_MAP := $(BUILD_SYSTEM)/prelink-$(combo_os_arch)-2g.map
+else
 $(combo_target)PRELINKER_MAP := $(BUILD_SYSTEM)/prelink-$(combo_os_arch).map
+endif
 
 # Now include the combo for this specific target.
 include $(BUILD_COMBOS)/$(combo_target)$(combo_os_arch).mk

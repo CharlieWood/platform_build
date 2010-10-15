@@ -29,7 +29,9 @@ LOCAL_CFLAGS += -DFSCANF_IS_BROKEN
 LOCAL_LDLIBS += -lintl
 endif
 
-
+ifeq ($(TARGET_KERNEL_2G),true)
+LOCAL_CFLAGS += -DKERNEL_IS_2G
+endif
 
 LOCAL_SRC_FILES := \
 	apriori.c \
