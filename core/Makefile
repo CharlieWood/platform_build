@@ -310,13 +310,16 @@ INTERNAL_RAMDISK_FILES := $(filter $(TARGET_ROOT_OUT)/%, \
 	$(ALL_DEFAULT_INSTALLED_MODULES))
 
 BUILT_RAMDISK_TARGET := $(PRODUCT_OUT)/ramdisk.img
+BUILT_URAMDISK_TARGET := $(PRODUCT_OUT)/uramdisk.img
 
 # We just build this directly to the install location.
 INSTALLED_RAMDISK_TARGET := $(BUILT_RAMDISK_TARGET)
 $(INSTALLED_RAMDISK_TARGET): $(MKBOOTFS) $(INTERNAL_RAMDISK_FILES) | $(MINIGZIP)
 	$(call pretty,"Target ram disk: $@")
 	$(hide) $(MKBOOTFS) $(TARGET_ROOT_OUT) | $(MINIGZIP) > $@
-
+	$(hide) $(ANDROID_BUILD_TOP)/$(TARGET_TOOLS_PREFIX)mkimage \
+		-A arm -O linux -T ramdisk -C none -a 0x90308000 -n "Android Root Filesystem" \
+		-d $(BUILT_RAMDISK_TARGET) $(BUILT_URAMDISK_TARGET)
 
 ifneq ($(strip $(TARGET_NO_KERNEL)),true)
 
