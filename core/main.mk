@@ -693,7 +693,8 @@ endif
 
 # Build files and then package it into the rom formats
 .PHONY: droidcore
-droidcore: files \
+droidcore: kernelimage \
+	files \
 	systemimage \
 	$(INSTALLED_BOOTIMAGE_TARGET) \
 	recoveryimage \

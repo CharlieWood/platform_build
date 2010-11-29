@@ -680,6 +680,20 @@ else
 INSTALLED_RECOVERYIMAGE_TARGET :=
 endif
 
+.PHONY: kernelimage
+ifeq ($(TARGET_BUILD_KERNEL),true)
+
+KERNEL_ENV := ARCH=arm CROSS_COMPILE=../$(TARGET_TOOLS_PREFIX)
+HOST_PROCESSOR := $(shell cat /proc/cpuinfo | grep processor | wc -l)
+kernelimage:
+	echo $(HOST_PROCESSOR)
+	$(MAKE) -C kernel_imx $(TARGET_KERNEL_DEFCONF) $(KERNEL_ENV)
+	$(MAKE) -C kernel_imx -j$(HOST_PROCESSOR) uImage $(KERNEL_ENV)
+	$(ACP) kernel_imx/arch/arm/boot/uImage $(PRODUCT_OUT)/uImage
+else
+kernelimage:
+endif
+
 .PHONY: recoveryimage
 ifneq ($(TARGET_NO_RECOVERY),true)
 
