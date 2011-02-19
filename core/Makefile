@@ -700,7 +700,7 @@ ifneq ($(TARGET_NO_RECOVERY),true)
 BIN_HELPER := linker sh
 LIB_HELPER := libc.so libm.so libstdc++.so
 
-ifeq ($(TARGET_USERIMAGES_USE_EXT2),true)
+ifeq ($(TARGET_USERIMAGES_USE_EXT4),true)
 BIN_HELPER += mke2fs
 LIB_HELPER += libext2_blkid.so libext2_com_err.so \
 	      libext2_e2p.so libext2fs.so libext2_profile.so \
