@@ -750,12 +750,12 @@ ifeq ($(INTERNAL_USERIMAGES_USE_EXT),true)
 # $(1): output file
 define build-systemimage-target
     @echo "Target system fs image: $(1)"
-    $(call build-userimage-ext-target,$(TARGET_OUT),$(1),system,$(INTERNAL_USERIMAGES_EXT_VARIANT),$(BOARD_SYSTEMIMAGE_PARTITION_SIZE))
+    $(call build-userimage-ext-target, $(TARGET_OUT),$(1),system,$(INTERNAL_USERIMAGES_EXT_VARIANT),$(BOARD_SYSTEMIMAGE_PARTITION_SIZE))
 endef
 
 define build-recoveryimage-target
      @echo "Target recovery fs image: $(1)"
-     $(call build-userimage-ext2-target,$(TARGET_RECOVERY_ROOT_OUT),$(1),recovery,true)
+     $(call build-userimage-ext-target, $(TARGET_RECOVERY_ROOT_OUT),$(1),recovery,$(INTERNAL_USERIMAGES_EXT_VARIANT), $(BOARD_RECOVERY_PARTITION_SIZE))
 endef
 
 else # INTERNAL_USERIMAGES_USE_EXT != true
