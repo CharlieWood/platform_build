@@ -719,6 +719,7 @@ recoveryimage: $(INSTALLED_RECOVERYIMAGE_TARGET) $(BIN_HELPER) $(LIB_HELPER)
 	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
 	mkdir -p $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
 	cp -f $(BIN_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/bin/
+	cp -f $(TARGET_ROOT_OUT)/init $(TARGET_RECOVERY_ROOT_OUT)/
 	cp -f $(LIB_HELPER) $(TARGET_RECOVERY_ROOT_OUT)/system/lib/
 	$(call build-recoveryimage-target,$(INSTALLED_RECOVERYIMAGE_TARGET))
 else
@@ -762,13 +763,13 @@ else # INTERNAL_USERIMAGES_USE_EXT != true
 
 ifeq ($(TARGET_USERIMAGES_USE_UBIFS),true)
 define build-systemimage-target
-    @echo "Target system fs image: $(1)"
+    @echo "Target system fs ubi image: $(1)"
     @mkdir -p $(dir $(1))
     $(hide) $(MKUBIFS) -d $(TARGET_OUT) -o $(1) $(TARGET_MKUBIFS_ARGS)
 endef
 
 define build-recoveryimage-target
-    @echo "Target recovery fs image: $(1)"
+    @echo "Target recovery fs ubi image: $(1)"
     $(hide) $(MKUBIFS) -d $(TARGET_RECOVERY_ROOT_OUT) -o $(1) $(TARGET_MKUBIFS_ARGS_RECOVERY)
 endef
 
